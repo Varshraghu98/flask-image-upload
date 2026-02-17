@@ -137,28 +137,139 @@ def allowed(filename):
 # =============================
 HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Cloud Image Upload</title>
+
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: auto; }
-        img { max-width: 100%; margin-top: 20px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 520px;
+            border-radius: 14px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .result {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .result img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .links {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .links a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
     </style>
 </head>
+
 <body>
-<h2>Upload Image</h2>
+    <div class="card">
+        <h2>Cloud Image Upload</h2>
+        <p class="subtitle">
+            Stored in <strong>AWS S3 / Azure Blob / GCP Storage</strong><br>
+            Provider selected via environment variables
+        </p>
 
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" required>
-    <button type="submit">Upload</button>
-</form>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload Image</button>
+        </form>
 
-{% if image_id %}
-    <h3>Uploaded Image</h3>
-    <img src="/images/{{ image_id }}">
-    <br><br>
-    <a href="/download/{{ image_id }}">Download image</a>
-{% endif %}
+        {% if image_id %}
+        <div class="result">
+            <h3>Upload Successful ☁️</h3>
+            <img src="/images/{{ image_id }}">
+            <div class="links">
+                <a href="/images/{{ image_id }}">View</a>
+                <a href="/download/{{ image_id }}">Download</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <footer>
+            Flask • Multi-Cloud Object Storage • AWS / Azure / GCP
+        </footer>
+    </div>
 </body>
 </html>
 """

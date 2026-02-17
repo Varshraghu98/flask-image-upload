@@ -15,7 +15,7 @@ source venv/bin/activate
 
 echo "=== Installing Python dependencies ==="
 pip install --upgrade pip
-pip install Flask Werkzeug boto3 azure-storage-blob google-cloud-storage
+python3 -m pip install Flask Werkzeug boto3 azure-storage-blob google-cloud-storage
 
 echo "=== Setting application environment variables ==="
 export STORAGE_PROVIDER=aws
