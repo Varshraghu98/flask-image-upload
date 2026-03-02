@@ -318,6 +318,92 @@ def download_image(image_id):
     mime = mimetypes.guess_type(image_id)[0] or "application/octet-stream"
     return send_file(file, mimetype=mime, download_name=image_id, as_attachment=True)
 
+from flask import jsonify
+
+# -----------------------------
+# Helper for consistent JSON errors
+# -----------------------------
+def json_error(message, status=400, **extra):
+    payload = {"error": message}
+    payload.update(extra)
+    return jsonify(payload), status
+
+
+# =============================
+# Plain APIs for Load Testing
+# =============================
+
+@app.route("/api/health", methods=["GET"])
+def api_health():
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route("/api/upload", methods=["POST"])
+def api_upload():
+    """
+    Plain upload endpoint for load testing.
+    Request: multipart/form-data with field name 'file'
+    Response: JSON with image_id and URLs
+    """
+    file = request.files.get("file")
+    if not file or not file.filename:
+        return json_error("Missing file in form-data. Use field name 'file'.", 400)
+
+    filename = secure_filename(file.filename)
+    if not allowed(filename):
+        return json_error(
+            "File type not allowed.",
+            415,
+            allowed_extensions=sorted(list(ALLOWED)),
+        )
+
+    ext = filename.rsplit(".", 1)[1].lower()
+    image_id = f"{uuid.uuid4()}.{ext}"
+    key = f"images/{image_id}"
+
+    try:
+        storage_client().upload(key, file, file.content_type)
+    except Exception as e:
+        return json_error("Upload failed.", 500, details=str(e))
+
+    return jsonify({
+        "image_id": image_id,
+        "view_url": f"/api/images/{image_id}",
+        "download_url": f"/api/download/{image_id}",
+        "legacy_view_url": f"/images/{image_id}",
+        "legacy_download_url": f"/download/{image_id}",
+    }), 201
+
+
+@app.route("/api/images/<image_id>", methods=["GET"])
+def api_show_image(image_id):
+    """
+    Plain view endpoint for load testing (returns raw image bytes).
+    """
+    key = f"images/{image_id}"
+    try:
+        file = storage_client().download(key)
+    except Exception:
+        return json_error("Not found.", 404)
+
+    mime = mimetypes.guess_type(image_id)[0] or "application/octet-stream"
+    return send_file(file, mimetype=mime)
+
+
+@app.route("/api/download/<image_id>", methods=["GET"])
+def api_download_image(image_id):
+    """
+    Plain download endpoint for load testing (forces attachment download).
+    """
+    key = f"images/{image_id}"
+    try:
+        file = storage_client().download(key)
+    except Exception:
+        return json_error("Not found.", 404)
+
+    mime = mimetypes.guess_type(image_id)[0] or "application/octet-stream"
+    return send_file(file, mimetype=mime, download_name=image_id, as_attachment=True)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
